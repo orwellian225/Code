@@ -51,7 +51,8 @@ class Graph:
         return result
 
     def plot_graph(self, vertex_labels: None | bool) -> None:
-        plt.figure(figsize=(5,5))
+        plt.figure(figsize=(2,2))
+        plt.axis('off')
 
         radius = 5
         positions_x = list(map(lambda x: radius * m.cos(x * 2 * m.pi / self.num_vertices), np.arange(0, self.num_vertices)))
