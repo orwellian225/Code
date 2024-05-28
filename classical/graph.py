@@ -22,6 +22,9 @@ class Graph:
     def get_edge_sequence(self) -> np.ndarray:
         return np.sum(self.adj_matrix, axis=1)
 
+    def get_edge_count(self) -> int:
+        return np.sum(self.adj_matrix) / 2
+
     def get_connectivity_sequence(self) -> np.ndarray:
         sequence = np.zeros(self.num_vertices)
 
