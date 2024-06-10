@@ -10,9 +10,6 @@ class Graph:
     def bitstring_to_adjacency_matrix(bitstring: str) -> npt.NDArray[np.uint8]:
         """
             UTILITY: Convert a bitstring into an adjacency matrix
-            
-            matrix_row = floor((i + 1) / num_vertices)
-            matrix_col = i % (num_vertices - 1) + 1 + matrix_row
         """
         num_vertices = (1 + m.sqrt( 1 + 8*len(bitstring) )) / 2
 
@@ -22,15 +19,20 @@ class Graph:
         num_vertices = int(num_vertices)
         result = np.zeros((num_vertices, num_vertices), dtype=np.uint8)
 
-        for i, c in enumerate(bitstring):
-            row = m.floor((i + 1) / num_vertices)
-            col = i % (num_vertices - 1) + 1 + row 
-            edge = int(c)
+        row_indent = 0
+        row_step = 0
+        for i, char in enumerate(bitstring):
+            row = m.floor((i + row_indent) / (num_vertices - 1))
+            col = row_indent + row_step + 1
+            edge = int(char)
 
-            print(i, row, col, c)
+            row_step += 1
+            if row_step == num_vertices - row_indent - 1:
+                row_indent += 1
+                row_step = 0
 
-            result[row, col] = edge
-            result[col, row] = edge
+            result[row][col] = edge
+            result[col][row] = edge
 
         return result
 
