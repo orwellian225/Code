@@ -2,6 +2,7 @@ import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
 import math as m
+from copy import deepcopy
 
 class Graph:
     adj_matrix: npt.NDArray[np.uint8]
@@ -21,6 +22,40 @@ class Graph:
 
     def __getitem__(self, key):
         return self.adj_matrix[key]
+
+    def has_subgraph(self, subgraph):
+        suborder = subgraph.num_vertices
+
+        def build(i: int, d: int, w: int, current: list, result: list):
+            if len(current) == d:
+                result.append(current)
+                return 
+
+            for j in range(i + 1, w):
+                c2 = deepcopy(current)
+                c2.append(j)
+                build(j, d, w, c2, result)
+
+        subgraph_vertices = []
+        for i in range(self.num_vertices - suborder + 1):
+            build(i, suborder, self.num_vertices, [ i ], subgraph_vertices)            
+
+        for h in subgraph_vertices:
+            result = True
+            for i in range(len(h) - 1):
+                for j in range(i, len(h)):
+                    # print(f"Edge pairs: ({h[i]}, {h[j]}) -> ({i}, {j})")
+                    # All edges must match
+                    result = result and self[h[i]][h[j]] == subgraph[i][j]
+
+            # if all edges match, then return true
+            if result:
+                return True
+
+        # if none of the subgraphs are found
+        return False
+
+
 
     def get_edge_sequence(self) -> np.ndarray:
         return np.sum(self.adj_matrix, axis=1)
@@ -48,7 +83,6 @@ class Graph:
         copy = Graph(np.copy(self.adj_matrix))
         copy.permute(vertex_1, vertex_2)
         return copy
-
 
     def to_bitstring(self) -> str:
         mask = np.triu(np.ones(self.adj_matrix.shape), k=1)
