@@ -19,6 +19,9 @@ class Graph:
     def __str__(self):
         return self.to_bitstring()
 
+    def __getitem__(self, key):
+        return self.adj_matrix[key]
+
     def get_edge_sequence(self) -> np.ndarray:
         return np.sum(self.adj_matrix, axis=1)
 
