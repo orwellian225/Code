@@ -1,2 +1,7 @@
 **/__pycache__
 __pycache__
+bin/
+etc/
+lib/
+include/
+share/
