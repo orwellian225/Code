@@ -93,7 +93,7 @@ class Graph:
 
         bitstring = bin(id)[2::].zfill(int(n*(n-1)/2))[::-1]
         if len(bitstring) > n*(n-1)/2:
-            raise ValueError(f"Specified ID {id} is larger than max id of graph order {n}\n\tMax ID = 2^(n(n-1)/2) = {int(2**(n*(n-1)/2))}")
+            raise ValueError(f"Specified ID {id} is larger than max id of graph order {n} | Max ID = 2^(n(n-1)/2) = {int(2**(n*(n-1)/2))}")
 
         row_indent = 0
         row_step = 0
