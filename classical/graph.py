@@ -1,17 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import math as m
-from copy import deepcopy
 
 import numpy.typing as npt
 from typing import Self
 
 class Properties:
+    id: int # The enumerating ID of the graph
     order: int # The number of vertices
     size: int # The number of edges
     encoding_length: int # The length of the encoding string
 
-    def __init__(self, order: int, size: int):
+    def __init__(self, id: int, order: int, size: int):
+        self.id = id
         self.order = order
         self.size = size
         self.encoding_length = int(order * (order - 1) / 2)
@@ -33,7 +34,7 @@ class Graph:
                 assert(matrix[i,j] == matrix[j,i])
 
         self.matrix = matrix
-        self.properties = Properties(len(self.matrix), np.sum(self.matrix) / 2)
+        self.properties = Properties(int(self.to_bitstring(), 2), len(self.matrix), np.sum(self.matrix) / 2)
 
     def __getitem__(self, key: int) -> npt.NDArray[np.uint8]:
         return self.matrix[key]
@@ -53,11 +54,8 @@ class Graph:
         result = "".join(map(str, elements))[::-1]
         return result
 
-    def to_bitint(self) -> int:
-        return int(self.to_bitstring(), 2)
-
-    def get_edge_sequence(self) -> npt.NDArray[np.uint64]:
-        return np.sum(self.matrix, axis=1)
+    def get_edge_sequence(self) -> list:
+        return np.sum(self.matrix, axis=1).tolist()
 
     def plot_graph(self, axes: plt.axes, radius=5, vertex_labels=False):
         axes.tick_params(
