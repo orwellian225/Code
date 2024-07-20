@@ -9,10 +9,12 @@ from typing import Self
 class Properties:
     order: int # The number of vertices
     size: int # The number of edges
+    encoding_length: int # The length of the encoding string
 
     def __init__(self, order: int, size: int):
         self.order = order
         self.size = size
+        self.encoding_length = int(order * (order - 1) / 2)
 
 class Graph:
     matrix: npt.NDArray[np.uint8]
@@ -37,7 +39,13 @@ class Graph:
         return self.matrix[key]
 
     def __eq__(self, other) -> bool:
-        return (self.matrix == other.matrix).all()
+        try:
+            return (self.matrix == other.matrix).all()
+        except AttributeError:
+            return False
+
+    def __str__(self) -> str:
+        return self.to_bitstring()
 
     def to_bitstring(self) -> str:
         mask = np.triu(np.ones(self.matrix.shape), k=1)
@@ -56,8 +64,8 @@ class Graph:
         plt.axis('off')
 
         radius = 5
-        positions_x = list(map(lambda x: radius * m.cos(x * 2 * m.pi / self.num_vertices), np.arange(0, self.num_vertices)))
-        positions_y = list(map(lambda x: radius * m.sin(x * 2 * m.pi / self.num_vertices), np.arange(0, self.num_vertices)))
+        positions_x = list(map(lambda x: radius * m.cos(x * 2 * m.pi / self.properties.order), np.arange(0, self.properties.order)))
+        positions_y = list(map(lambda x: radius * m.sin(x * 2 * m.pi / self.properties.order), np.arange(0, self.properties.order)))
 
         if vertex_labels:
             for i in range(self.properties.order):
@@ -65,7 +73,7 @@ class Graph:
 
         for i in range(self.properties.order):
             for j in range(self.properties.order):
-                if self.adj_matrix[i,j] == 1:
+                if self.matrix[i,j] == 1:
                     plt.plot(
                         (positions_x[i], positions_x[j]),
                         (positions_y[i], positions_y[j]),
@@ -73,7 +81,6 @@ class Graph:
                     )
 
         plt.scatter(positions_x, positions_y, c='black')
-        plt.show()
 
     def complete_n(n: int) -> Self:
         new_matrix = np.ones((n, n), dtype=np.uint8)
@@ -84,6 +91,24 @@ class Graph:
 
     def empty_n(n: int) -> Self:
         return Graph(np.zeros((n, n), dtype=np.uint8))
+
+    def cycle_n(n: int) -> Self:
+        new_matrix = np.zeros((n, n), dtype=np.uint8)
+        for i in range(n - 1):
+            new_matrix[i][i + 1] = 1
+            new_matrix[i + 1][i] = 1
+
+        new_matrix[0][n - 1] = 1
+        new_matrix[n - 1][0] = 1
+        return Graph(new_matrix)
+
+    def path_n(n: int) -> Self:
+        new_matrix = np.zeros((n, n), dtype=np.uint8)
+        for i in range(n - 1):
+            new_matrix[i][i + 1] = 1
+            new_matrix[i + 1][i] = 1
+
+        return Graph(new_matrix)
 
     def from_id(id: int, n: int) -> Self:
         """
