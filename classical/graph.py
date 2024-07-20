@@ -59,28 +59,30 @@ class Graph:
     def get_edge_sequence(self) -> npt.NDArray[np.uint64]:
         return np.sum(self.matrix, axis=1)
 
-    def plot_graph(self, radius=5, size=2, vertex_labels=False):
-        plt.figure(figsize=(size,size))
-        plt.axis('off')
+    def plot_graph(self, axes: plt.axes, radius=5, vertex_labels=False):
+        axes.tick_params(
+            left=False, right=False, bottom=False, top=False,
+            labelleft=False, labelright=False, labelbottom=False, labeltop=False
+        )
+        axes.margins(0.1)
 
-        radius = 5
         positions_x = list(map(lambda x: radius * m.cos(x * 2 * m.pi / self.properties.order), np.arange(0, self.properties.order)))
         positions_y = list(map(lambda x: radius * m.sin(x * 2 * m.pi / self.properties.order), np.arange(0, self.properties.order)))
 
         if vertex_labels:
             for i in range(self.properties.order):
-                plt.text(positions_x[i] + 1., positions_y[i], str(i))
+                axes.text(positions_x[i] + 1., positions_y[i], str(i))
 
         for i in range(self.properties.order):
             for j in range(self.properties.order):
                 if self.matrix[i,j] == 1:
-                    plt.plot(
+                    axes.plot(
                         (positions_x[i], positions_x[j]),
                         (positions_y[i], positions_y[j]),
                         color='black'
                     )
 
-        plt.scatter(positions_x, positions_y, c='black')
+        axes.scatter(positions_x, positions_y, c='black')
 
     def complete_n(n: int) -> Self:
         new_matrix = np.ones((n, n), dtype=np.uint8)
