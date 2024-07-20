@@ -69,7 +69,7 @@ class Graph:
 
         if vertex_labels:
             for i in range(self.properties.order):
-                axes.text(positions_x[i] + 1., positions_y[i], str(i))
+                axes.text(positions_x[i] + 0.3, positions_y[i] + 0.3, str(i + 1))
 
         for i in range(self.properties.order):
             for j in range(self.properties.order):
@@ -80,7 +80,7 @@ class Graph:
                         color='black'
                     )
 
-        axes.scatter(positions_x, positions_y, c='black')
+        axes.scatter(positions_x, positions_y, c='black', s=2)
 
     def complete_n(n: int) -> Self:
         new_matrix = np.ones((n, n), dtype=np.uint8)
