@@ -18,10 +18,10 @@ class Properties:
         self.encoding_length = int(order * (order - 1) / 2)
 
 class Graph:
-    matrix: npt.NDArray[np.uint8]
+    matrix: npt.NDArray[np.int8]
     properties: Properties
 
-    def __init__(self, matrix: npt.NDArray[np.uint8]) -> Self: 
+    def __init__(self, matrix: npt.NDArray[np.int8]) -> Self: 
         n = len(matrix)
 
         # Diagonal must be zeros
@@ -36,7 +36,7 @@ class Graph:
         self.matrix = matrix
         self.properties = Properties(int(self.to_bitstring(), 2), len(self.matrix), np.sum(self.matrix) / 2)
 
-    def __getitem__(self, key: int) -> npt.NDArray[np.uint8]:
+    def __getitem__(self, key: int) -> npt.NDArray[np.int8]:
         return self.matrix[key]
 
     def __eq__(self, other) -> bool:
@@ -49,8 +49,12 @@ class Graph:
         return self.to_bitstring()
 
     def to_bitstring(self) -> str:
+        """
+            * Handles wildcard edges as if they are empty edges
+        """
         mask = np.triu(np.ones(self.matrix.shape), k=1)
         elements = self.matrix[mask == 1]
+        elements[elements == -1] = 0 # reset wildcard edges to 0
         result = "".join(map(str, elements))[::-1]
         return result
 
@@ -79,21 +83,28 @@ class Graph:
                         (positions_y[i], positions_y[j]),
                         color='black'
                     )
+                elif self.matrix[i,j] == -1:
+                    axes.plot(
+                        (positions_x[i], positions_x[j]),
+                        (positions_y[i], positions_y[j]),
+                        color='grey',
+                        alpha=0.4
+                    )
 
         axes.scatter(positions_x, positions_y, c='black', s=2)
 
     def complete_n(n: int) -> Self:
-        new_matrix = np.ones((n, n), dtype=np.uint8)
+        new_matrix = np.ones((n, n), dtype=np.int8)
         for i in range(n):
             new_matrix[i,i] = 0
 
         return Graph(new_matrix)
 
     def empty_n(n: int) -> Self:
-        return Graph(np.zeros((n, n), dtype=np.uint8))
+        return Graph(np.zeros((n, n), dtype=np.int8))
 
     def cycle_n(n: int) -> Self:
-        new_matrix = np.zeros((n, n), dtype=np.uint8)
+        new_matrix = np.zeros((n, n), dtype=np.int8)
         for i in range(n - 1):
             new_matrix[i][i + 1] = 1
             new_matrix[i + 1][i] = 1
@@ -102,11 +113,45 @@ class Graph:
         new_matrix[n - 1][0] = 1
         return Graph(new_matrix)
 
-    def path_n(n: int) -> Self:
-        new_matrix = np.zeros((n, n), dtype=np.uint8)
+    def subgraph_cycle_n(n: int) -> Self:
+        """
+            Create a cycle graph, but use the value of all other edges as a wildcard to indicate 
+            that the cycle exists as a subgraph
+        """
+        new_matrix = np.ones((n, n), dtype=np.int8) * -1
         for i in range(n - 1):
             new_matrix[i][i + 1] = 1
             new_matrix[i + 1][i] = 1
+
+            # set diagonal to zero
+            new_matrix[i][i] = 0
+        new_matrix[n - 1][n - 1] = 0
+
+        new_matrix[0][n - 1] = 1
+        new_matrix[n - 1][0] = 1
+        return Graph(new_matrix)
+
+    def path_n(n: int) -> Self:
+        new_matrix = np.zeros((n, n), dtype=np.int8)
+        for i in range(n - 1):
+            new_matrix[i][i + 1] = 1
+            new_matrix[i + 1][i] = 1
+
+        return Graph(new_matrix)
+
+    def subgraph_path_n(n: int) -> Self:
+        """
+            Create a path graph, but use the value of all other edges as a wildcard to indicate
+            that the path exists as a subgraph
+        """
+        new_matrix = np.ones((n, n), dtype=np.int8) * -1
+        for i in range(n - 1):
+            new_matrix[i][i + 1] = 1
+            new_matrix[i + 1][i] = 1
+
+            # set diagonal to zero
+            new_matrix[i][i] = 0
+        new_matrix[n - 1][n - 1] = 0
 
         return Graph(new_matrix)
 
@@ -114,7 +159,7 @@ class Graph:
         """
         Return the graph of order n identified by the integer id as a bitstring
         """
-        matrix = np.zeros((n, n), dtype=np.uint8)
+        matrix = np.zeros((n, n), dtype=np.int8)
 
         bitstring = bin(id)[2::].zfill(int(n*(n-1)/2))[::-1]
         if len(bitstring) > n*(n-1)/2:
