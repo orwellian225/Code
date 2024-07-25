@@ -34,7 +34,8 @@ class Graph:
                 assert(matrix[i,j] == matrix[j,i])
 
         self.matrix = matrix
-        self.properties = Properties(int(self.to_bitstring(), 2), len(self.matrix), np.sum(self.matrix) / 2)
+        bitstring = self.to_bitstring().replace('*', '0')
+        self.properties = Properties(int(bitstring, 2), len(self.matrix), np.sum(self.matrix) / 2)
 
     def __getitem__(self, key: int) -> npt.NDArray[np.int8]:
         return self.matrix[key]
@@ -54,8 +55,14 @@ class Graph:
         """
         mask = np.triu(np.ones(self.matrix.shape), k=1)
         elements = self.matrix[mask == 1]
-        elements[elements == -1] = 0 # reset wildcard edges to 0
-        result = "".join(map(str, elements))[::-1]
+
+        def edge_to_char(e):
+            if e == -1:
+                return '*'
+            else:
+                return str(e)
+
+        result = "".join(map(edge_to_char, elements))[::-1]
         return result
 
     def get_edge_sequence(self) -> list:
@@ -154,6 +161,30 @@ class Graph:
         new_matrix[n - 1][n - 1] = 0
 
         return Graph(new_matrix)
+
+    def from_bitstring(id: str, n: int) -> Self:
+        """
+            Convert a binary string to a graph
+        """
+        matrix = np.zeros((n, n), dtype=np.int8)
+
+        bitstring = id[::-1].rjust(int(n*(n - 1)/2), "*")
+        row_indent = 0
+        row_step = 0
+        for i, b in enumerate(bitstring):
+            row = int(m.floor((i + row_indent) / (n - 1)))
+            col = row_indent + row_step + 1
+            # print(row, col, b)
+
+            row_step += 1
+            if row_step == n - row_indent - 1:
+                row_indent += 1
+                row_step = 0
+
+            matrix[row][col] = int(b) if b != '*' else -1
+            matrix[col][row] = int(b) if b != '*' else -1
+
+        return Graph(matrix)
 
     def from_id(id: int, n: int) -> Self:
         """
