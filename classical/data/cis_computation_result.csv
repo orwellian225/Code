@@ -1,0 +1,8 @@
+n,k,l,result
+2,3,3,False
+3,3,3,False
+4,3,3,False
+5,3,3,False
+6,3,3,True
+7,3,3,True
+8,3,4,False
